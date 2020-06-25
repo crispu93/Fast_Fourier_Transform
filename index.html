@@ -7,12 +7,26 @@
         body {
             margin: 0px;
             padding: 0px;
+            background: #202020;
+        }
+        canvas {
+            width: 800px;
+            height: 130px;
+            margin: 2rem auto;
+            background: #282831;
         }
         </style>
-        <script src="https://cdn.jsdelivr.net/npm/p5@1.0.0/lib/p5.js"></script>
-        
+        <!--<script src="https://cdn.jsdelivr.net/npm/p5@1.0.0/lib/p5.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.0.0/addons/p5.sound.min.js"></script>-->
+        <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/7.0.1/math.min.js"></script>-->
+        <script src="complex.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/complex-js@6.0.3-alpha/dst/complex.min.js"></script>
     </head>
     <body>
-        <script src="sketch.js"></script>
+        <h2 style="color:red;">Audio before FTT</h2>
+        <canvas id ="before"></canvas>
+        <h2 style="color:red;">Recovered audio</h2>
+        <canvas id ="after"></canvas>
+        <script src="index.js"></script>
     </body>
 </html>            
