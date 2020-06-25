@@ -4,45 +4,36 @@
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
 const audioContext = new AudioContext();
 let currentBuffer = null;
-const { Complex } = window;
-//let fileName = 'heroes(mono).wav';
-let fileName = 'audiocheck.net_whitenoise.wav';
-let sampleSize = 32768/2;
+
+let fileName = 'pcm1608m.wav';
+//let fileName = 'audiocheck.net_whitenoise.wav';
+let sampleSize = 32768*2;
 //let sampleSize = 8192;
+//let sampleSize = 2048;
 var audioCtx = new AudioContext();
-var myBuffer = audioCtx.createBuffer(1, sampleSize, 44100);
+var myBuffer = audioCtx.createBuffer(1, sampleSize, 8000);
 var nowBuffer = myBuffer.getChannelData(0);
 
 const drawAudio = url => {
     fetch (url)
         .then(response => response.arrayBuffer())
         .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
-        .then(audioBuffer => {draw('before', normalizeData(filterData(audioBuffer)));
-        
-        let newAudioBuffer =  FFT(filterData(audioBuffer));
-        
-        let audBuff = iFFT(newAudioBuffer);
-        
+        .then(audioBuffer => {
+        let aux = filterData(audioBuffer)
+        draw('before', normalizeData(aux));
+        let audBuff =  iFFT(FFT(aux));
+        audBuff = audBuff.map(x => x*audBuff.length);
         draw('after', normalizeData(audBuff));
-
         for (var i = 0; i< myBuffer.length; i++){
-            //nowBuffer[i] = filterData(audioBuffer)[i];
-            nowBuffer[i] = audBuff[i].toFixed(4)
+            nowBuffer[i] = aux[i];
         }
-        console.log(filterData(audioBuffer));
-        console.log(audBuff);
+        console.log(nowBuffer);
 
+        // Playing generated
         var source = audioCtx.createBufferSource();
         source.buffer = myBuffer;
         source.connect(audioCtx.destination);
         source.start();
-        /*let wav = new wavefile.WaveFile();
- 
-        // Create a mono wave file, 44.1 kHz, 32-bit and 4 samples
-        wav.fromScratch(1, 44100, '16', filterData(audioBuffer));
-        //fs.writeFileSync("new.wav", wav.toBuffer());
-        var audio = new Audio(wav.toBuffer());
-        audio.play();*/
     });
 
 };
@@ -50,10 +41,9 @@ const drawAudio = url => {
 const filterData = audioBuffer => {
     const rawData = audioBuffer.getChannelData(0);
     const samples = sampleSize;
-    //const blockSize = Math.floor(rawData.length/samples);
     const filteredData = [];
     for(let i = 0; i < samples; i++) {
-        filteredData.push(rawData[i].toFixed(4));
+        filteredData.push(rawData[i]);
     }
     return filteredData;
 };
@@ -117,19 +107,23 @@ function FFT(arr) {
     x1 = FFT(even);
     x2 = FFT(odd);
     for (let k = 0; k <= n/2-1; k++) {
-        let arg = -1*2*Math.pi*k/n;
-        let w = Complex(Math.cos(arg), Math.sin(arg));
-        y[k] = w.mul(x2[k]).add(x1[k]);
-        y[n/2 + k] = Complex(x1[k]).sub(w.mul(x2[k]));
-        //console.log(arg);
-        //let w = math.complex(math.cos(arg), math.sin(arg)); // Euler's formula 
-        //y[k] = math.add(math.multiply(w, x2[k]), x1[k]);
-        //y[n/2 + k] = math.subtract(x1[k], math.multiply(w, x2[k]));
+        let arg = -1*2*math.pi*k/n;
+        let w = math.complex(math.cos(arg), math.sin(arg)); // Euler's formula 
+        y[k] = math.add(math.multiply(w, x2[k]), x1[k]);
+        y[n/2 + k] = math.subtract(x1[k], math.multiply(w, x2[k]));
+        /*if (isNearZero(y[k].re))
+            y[k].re = 0;
+        if (isNearZero(y[k].im))
+            y[k].im = 0;
+        if (isNearZero(y[n/2 + k].re))
+            y[n/2 + k].re = 0;
+        if (isNearZero(y[n/2 + k].im))
+            y[n/2 + k].im = 0;*/
     }
     return y;
 }
 
-/*function iFFT(arr) {
+function iFFT(arr) {
     let n = arr.length;
     if (n == 1)
         return arr;
@@ -139,26 +133,51 @@ function FFT(arr) {
         y = new Array(n);
 
     for (let i = 0; i < n; i++) {
-        if (i % 2)
+        if (i % 2 == 1)
             odd.push(arr[i]);
         else
             even.push(arr[i]);
     }
 
-    x1 = iFFT(even);
+    x1   = iFFT(even);
     x2 = iFFT(odd);
 
     for (let k = 0; k <= n/2-1; k++) {
-        let arg = 2*math.pi*k/n;
-        console.log(arg);
+        let arg = 2*Math.PI*k/n;
         let w = math.complex(math.cos(arg), math.sin(arg)); // Euler's formula 
+        w = math.inv(w);
         y[k] = math.add(math.multiply(w, x2[k]), x1[k]);
-        y[k] = math.divide(y[k], n);
-        y[n/2 + k] = math.divide(math.subtract(x1[k], math.multiply(x2[k], w)), n);
+        y[k] = math.multiply(y[k], math.inv(n)).re;
+        let r =math.multiply(x2[k], w);
+        y[n/2 + k] = math.multiply(math.subtract(x1[k], r), math.inv(n)).re;
+        
+        /*if (isNearZero(y[k].re))
+            y[k].re = 0;
+        if (isNearZero(y[k].im))
+            y[k].im = 0;
+        if (isNearZero(y[n/2 + k].re))
+            y[n/2 + k].re = 0;
+        if (isNearZero(y[n/2 + k].im))
+            y[n/2 + k].im = 0;*/
+        /*if (isNearZero(y[k]))
+            y[k] = 0;
+        if (isNearZero(y[n/2 + k]))
+            y[n/2 + k] = 0;*/
     }
-
     return y;
-}*/
+}
 
-//drawAudio(fileName);
-console.log(FFT([1,1,1,1]));
+function isNearZero(number){
+    if (Math.abs(number) < 1e-10)
+        return true;
+    else
+        false;
+}
+
+function round(value, decimals) {
+    return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+}
+
+drawAudio(fileName);
+let len = 8;
+console.log(iFFT(FFT([8,8,8,8,8,8,8,8])).map(x=>x*len));
