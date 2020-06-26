@@ -5,14 +5,15 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext;
 const audioContext = new AudioContext();
 let currentBuffer = null;
 
-let fileName = 'pcm1608m.wav';
+let fileName = 'heroes(mono).wav';
 //let fileName = 'audiocheck.net_whitenoise.wav';
 let sampleSize = 32768*2;
 //let sampleSize = 8192;
 //let sampleSize = 2048;
 var audioCtx = new AudioContext();
-var myBuffer = audioCtx.createBuffer(1, sampleSize, 8000);
+var myBuffer = audioCtx.createBuffer(2, sampleSize, 44100);
 var nowBuffer = myBuffer.getChannelData(0);
+var source = audioCtx.createBufferSource();
 
 const drawAudio = url => {
     fetch (url)
@@ -22,21 +23,30 @@ const drawAudio = url => {
         let aux = filterData(audioBuffer)
         draw('before', normalizeData(aux));
         let audBuff =  iFFT(FFT(aux));
-        audBuff = audBuff.map(x => x*audBuff.length);
+        audBuff = audBuff.map(x => x*audBuff.length*1e32*4);
         draw('after', normalizeData(audBuff));
         for (var i = 0; i< myBuffer.length; i++){
-            nowBuffer[i] = aux[i];
+            //nowBuffer[i] = aux[i];
+            if (isNearZero(audBuff[i])){
+                audBuff[i] = 0;
+            }
+            nowBuffer[i] = audBuff[i];
+            //console.log(audBuff[i]);
         }
-        console.log(nowBuffer);
+        //console.log(aux);
+        //console.log(nowBuffer);
 
         // Playing generated
-        var source = audioCtx.createBufferSource();
         source.buffer = myBuffer;
-        source.connect(audioCtx.destination);
-        source.start();
+    source.connect(audioCtx.destination);
     });
 
 };
+
+function playAudio2() {
+    source.start();
+    console.log("ya");
+}
 
 const filterData = audioBuffer => {
     const rawData = audioBuffer.getChannelData(0);

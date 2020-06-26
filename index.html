@@ -15,6 +15,7 @@
             margin: 2rem auto;
             background: #282831;
         }
+        
         </style>
         <!--<script src="https://cdn.jsdelivr.net/npm/p5@1.0.0/lib/p5.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.0.0/addons/p5.sound.min.js"></script>-->
@@ -22,8 +23,29 @@
     </head>
     <body>
         <h2 style="color:red;">Audio before FTT</h2>
+        <audio id="myAudio">
+            <source src="heroes(mono).wav" type="audio/wav">
+            Your browser does not support the audio element.
+        </audio>
+        <button onclick="playAudio()" type="button">Play Audio</button>
+        <button onclick="pauseAudio()" type="button">Pause Audio</button>
+        <script>
+            var x = document.getElementById("myAudio"); 
+            
+            function playAudio() { 
+              x.play(); 
+            } 
+            
+            function pauseAudio() { 
+              x.pause(); 
+            }
+            
+        </script>
+
         <canvas id ="before"></canvas>
         <h2 style="color:red;">Recovered audio</h2>
+
+        <button onclick="playAudio2()" type="button">Play Audio</button>
         <canvas id ="after"></canvas>
         <script src="index.js"></script>
     </body>
